@@ -247,8 +247,7 @@ dialog::backdrop{background:rgba(6,32,27,.7);backdrop-filter:blur(3px)}
       <a href="#decision">Decision</a>
       <a href="#log">Night log</a>
     </nav>
-    <button class="btn btn-amber btn-sm" id="open-settings" type="button">Settings</button>
-  </div>
+    <button class="btn btn-amber btn-sm" id="open-settings" type="button">Settings</button>  </div>
 </header>
 
 <main id="top">
@@ -497,8 +496,7 @@ function csvObjects(t) {
 const find = (o, ...res) => { for (const re of res) { const k = Object.keys(o).find(k => re.test(k)); if (k !== undefined) return o[k]; } return undefined; };
 
 const OVERRIDE = {};
-const DEPOTS_FALLBACK = `depot,salt_stock_t,trucks_ready,drivers_on_call,forecast_override_ground_c,notes
-Cavan,610,4,4,,Normal service
+const DEPOTS_FALLBACK = `depot,salt_stock_t,trucks_ready,drivers_on_call,forecast_override_ground_c,notesCavan,610,4,4,,Normal service
 Ballyjamesduff,240,2,2,,Normal service
 Bailieborough,4,1,2,,Salt delivery due Friday
 Cootehill,180,0,2,,Only gritter in for repair until Thursday
@@ -747,8 +745,7 @@ function analyse() {
     const ov = d ? num(d.forecast_override_ground_c) : NaN;
     if (Number.isFinite(ov)) { a.minG = ov; a.overridden = true; }
     const fz = soil.findIndex(v => v <= 0), fl = soil.findIndex(v => v <= a.limit);
-    const fi = fz >= 0 ? fz : fl;
-    a.firstZeroTime = fz >= 0 ? a.times[fz].slice(11, 16) : '';
+    const fi = fz >= 0 ? fz : fl;    a.firstZeroTime = fz >= 0 ? a.times[fz].slice(11, 16) : '';
     a.wet = rain.some(v => v > 0) || soil.some((v, k) => Number.isFinite(v) && Number.isFinite(dew[k]) && Math.abs(dew[k] - v) <= 1);
     a.rainTotal = rain.filter(Number.isFinite).reduce((s, v) => s + v, 0);
     a.depotRow = d;
