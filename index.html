@@ -302,7 +302,7 @@ dialog::backdrop{background:rgba(6,32,27,.7);backdrop-filter:blur(3px)}
         </div>
         <div class="status" id="status-tonight" role="status" aria-live="polite"></div>
         <div class="answer" id="ans-tonight"></div>
-        <details class="peek"><summary>AI context used</summary><p id="peek-msg">The brain receives the winter plan, current depot figures, tonight's route analysis and a summary of five winters. Raw history data is not sent.</p></details>
+        <details class="peek"><summary>Data used by the brain</summary><p id="peek-msg">Plan, depot board, route analysis, live forecast and five-winter summary.</p></details>
       </div>
 
       <div class="panel">
@@ -549,7 +549,7 @@ async function getText(url, key) {
 async function fetchOneForecast(lat, lon) {
   // Keep this as a small, standard Open-Meteo request.  forecast_days=2 is
   // more widely supported than forecast_hours and we slice the first 24h below.
-  const url = 'https://api.open-meteo.com/v1/forecast' +
+  const url = '/api/forecast' +
     '?latitude=' + encodeURIComponent(lat) +
     '&longitude=' + encodeURIComponent(lon) +
     '&hourly=temperature_2m,soil_temperature_0cm,dew_point_2m,precipitation' +
@@ -938,7 +938,7 @@ const PROVIDERS = {
   groq:      { label: 'Groq',      model: 'openai/gpt-oss-20b' }
 };
 function loadSettingsUI() {
-  const p = store.get('ww.provider') || 'groq';
+  const p = 'groq';
   $('#provider').value = p;
   $('#model').value = store.get('ww.model.' + p) || PROVIDERS[p].model;
   $('#key').value = store.get('ww.key.' + p) || '';
