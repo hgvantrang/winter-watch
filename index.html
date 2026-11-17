@@ -401,7 +401,7 @@ dialog::backdrop{background:rgba(6,32,27,.7);backdrop-filter:blur(3px)}
 <dialog id="settings" aria-labelledby="st-title">
   <div class="dlg">
     <h2 id="st-title">Settings</h2>
-    <p>Your key stays in this browser (localStorage) and goes only to the provider you pick. It is never written into this file or your repository.</p>
+    <p>Your key stays in this browser (localStorage) and goes only to the provider you pick. It is never written into this file or your repository. For a no-payment demo, Groq is selected by default.</p>
     <label for="provider">Provider</label>
     <select id="provider">
       <option value="openai">OpenAI</option>
@@ -418,7 +418,7 @@ dialog::backdrop{background:rgba(6,32,27,.7);backdrop-filter:blur(3px)}
       <div><label for="pin">Input price per 1M tokens</label><input type="number" id="pin" step="any" min="0" placeholder="e.g. 0.15"></div>
       <div><label for="pout">Output price per 1M tokens</label><input type="number" id="pout" step="any" min="0" placeholder="e.g. 0.60"></div>
     </div>
-    <p class="hint">Prices are optional and only used to show cost per question in cent. Set a monthly spending limit of a few euro in your provider’s dashboard.</p>
+    <p class="hint">Prices are optional. Groq may provide free-tier usage subject to its current limits; check your Groq account for the current allowance.</p>
     <div class="row">
       <button class="btn btn-amber" id="save" type="button">Save</button>
       <button class="btn btn-line" id="forget" type="button">Forget key</button>
@@ -935,10 +935,10 @@ const PROVIDERS = {
   openai:    { label: 'OpenAI',    model: 'gpt-4o-mini' },
   anthropic: { label: 'Anthropic', model: 'claude-3-5-haiku-latest' },
   gemini:    { label: 'Gemini',    model: 'gemini-2.5-flash' },
-  groq:      { label: 'Groq',      model: 'llama-3.3-70b-versatile' }
+  groq:      { label: 'Groq',      model: 'openai/gpt-oss-20b' }
 };
 function loadSettingsUI() {
-  const p = store.get('ww.provider') || 'openai';
+  const p = store.get('ww.provider') || 'groq';
   $('#provider').value = p;
   $('#model').value = store.get('ww.model.' + p) || PROVIDERS[p].model;
   $('#key').value = store.get('ww.key.' + p) || '';
