@@ -401,7 +401,7 @@ dialog::backdrop{background:rgba(6,32,27,.7);backdrop-filter:blur(3px)}
 <dialog id="settings" aria-labelledby="st-title">
   <div class="dlg">
     <h2 id="st-title">Settings</h2>
-    <p>Your key stays in this browser (localStorage) and goes only to the provider you pick. It is never written into this file or your repository. For a no-payment demo, Groq is selected by default.</p>
+    <p>For Groq, visitors do not enter a key: the app sends the request to its server-side /api/ask proxy. The Groq secret is kept in the hosting provider's environment variables, not in this file or repository.</p>
     <label for="provider">Provider</label>
     <select id="provider">
       <option value="openai">OpenAI</option>
@@ -413,7 +413,7 @@ dialog::backdrop{background:rgba(6,32,27,.7);backdrop-filter:blur(3px)}
     <input type="text" id="model" autocomplete="off" spellcheck="false">
     <p class="hint">Use the cheapest model that does the job. Check the exact name in your provider’s documentation, as names change.</p>
     <label for="key">API key</label>
-    <input type="password" id="key" autocomplete="off" spellcheck="false" placeholder="Paste your key, then press Save">
+    <input type="password" id="key" autocomplete="off" spellcheck="false" placeholder="Not needed for Groq server mode">
     <div class="grid2">
       <div><label for="pin">Input price per 1M tokens</label><input type="number" id="pin" step="any" min="0" placeholder="e.g. 0.15"></div>
       <div><label for="pout">Output price per 1M tokens</label><input type="number" id="pout" step="any" min="0" placeholder="e.g. 0.60"></div>
@@ -945,7 +945,7 @@ function loadSettingsUI() {
   $('#pin').value = store.get('ww.pin') || ''; $('#pout').value = store.get('ww.pout') || '';
 }
 function getCfg() {
-  const p = store.get('ww.provider') || 'openai';
+  const p = store.get('ww.provider') || 'groq';
   return { provider: p, model: store.get('ww.model.' + p) || PROVIDERS[p].model, key: store.get('ww.key.' + p) || '', pin: num(store.get('ww.pin')), pout: num(store.get('ww.pout')) };
 }
 function openSettings() { loadSettingsUI(); $('#st-msg').textContent = ''; $('#settings').showModal(); }
@@ -1009,9 +1009,13 @@ async function callProvider(cfg, system, user) {
   const safeKey = String(key || '').trim().replace(/[^\x00-\x7F]/g, '');
   let r, data;
   const bodyErr = async r => { let t = ''; try { t = await r.text(); } catch {} const hint = r.status === 401 ? ' (key wrong or pasted with a space)' : r.status === 429 ? ' (no credit or too many questions; check billing)' : ''; return new Error(`${PROVIDERS[p].label} returned ${r.status}${hint}: ${t.slice(0, 600)}`); };
-  if (p === 'openai' || p === 'groq') {
-    const url = p === 'openai' ? 'https://api.openai.com/v1/chat/completions' : 'https://api.groq.com/openai/v1/chat/completions';
-    r = await fetch(url, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + safeKey }, body: JSON.stringify({ model, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }) });
+  if (p === 'groq') {
+    r = await fetch('/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ model, system, user }) });
+    if (!r.ok) throw await bodyErr(r); data = await r.json();
+    return { text: data.text || data.choices?.[0]?.message?.content || '', usage: data.usage || { in: data.usage?.prompt_tokens, out: data.usage?.completion_tokens } };
+  }
+  if (p === 'openai') {
+    r = await fetch('https://api.openai.com/v1/chat/completions', { method: 'POST', headers: { 'Content-Type': 'application/json', 'Authorization': 'Bearer ' + safeKey }, body: JSON.stringify({ model, messages: [{ role: 'system', content: system }, { role: 'user', content: user }] }) });
     if (!r.ok) throw await bodyErr(r); data = await r.json();
     return { text: data.choices?.[0]?.message?.content || '', usage: { in: data.usage?.prompt_tokens, out: data.usage?.completion_tokens } };
   }
@@ -1075,7 +1079,8 @@ document.addEventListener('click', e => {
 
 async function ask(question, { box, statusEl, btns = [], silent = false }) {
   const cfg = getCfg();
-  if (!cfg.key) { statusEl.textContent = 'Add your provider and key in Settings first.'; statusEl.className = 'status err'; openSettings(); return null; }
+  // Groq is called through the server-side /api/ask proxy, so visitors do not need an API key.
+  if (cfg.provider !== 'groq' && !cfg.key) { statusEl.textContent = 'Add your provider and key in Settings first.'; statusEl.className = 'status err'; openSettings(); return null; }
   if (S.busy) return null; S.busy = true; btns.forEach(b => b.disabled = true);
   statusEl.className = 'status'; statusEl.textContent = 'Fetching the forecast, depots and plan…';
   try {
